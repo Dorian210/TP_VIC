@@ -38,7 +38,7 @@ def install_tp():
         "ipykernel",
         "install",
         "--user",
-        f"--name={venv_dir}",
+        f"--name={os.path.basename(venv_dir)}",
         "--display-name",
         "\"Python (TP VIC venv)\""
     ]
