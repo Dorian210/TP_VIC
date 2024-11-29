@@ -11,19 +11,19 @@ on:
 jobs:
   test-windows:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, 3.10, 3.11]
 
     steps:
-      # Étape 1 : Récupérer le code du dépôt
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Étape 2 : Configurer Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: ${{ matrix.python-version }}
 
-      # Étape 3 : Installer les dépendances et tester
       - name: Run installer script
         run: |
           python install.py
