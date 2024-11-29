@@ -3,8 +3,8 @@ import platform
 import subprocess
 import sys
 import urllib.request
-import zipfile
 import shutil
+import time
 
 def run_command(command, shell=False):
     """Exécute une commande système et affiche les erreurs en cas d'échec."""
@@ -51,6 +51,15 @@ def verify_python_version():
     except FileNotFoundError:
         if platform.system() == "Windows":
             install_python_windows()
+            # Attendre que Python soit accessible dans le PATH
+            time.sleep(5)  # Laisser un peu de temps pour que le PATH soit pris en compte
+            print("Vérification après installation...")
+            try:
+                output = subprocess.check_output(["python3.9", "--version"], text=True)
+                print(f"Python trouvé après installation : {output.strip()}")
+            except FileNotFoundError:
+                print("Erreur : Python 3.9 introuvable après l'installation.")
+                sys.exit(1)
         elif platform.system() == "Linux":
             install_python_linux()
         else:
