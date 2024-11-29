@@ -12,7 +12,6 @@ from tqdm import tqdm, trange
 
 from .b_spline import BSpline, _writePVD
 from .b_spline_basis import BSplineBasis
-from .save_YETI import Domain, write
 
 # union-find algorithm for connectivity
 @nb.njit
@@ -544,22 +543,6 @@ class MultiPatchBSplineConnectivity:
                   "elements_borders": {"ext": "vtu", "npart": self.nb_patchs, "nstep": n_step}, 
                   "control_points": {"ext": "vtu", "npart": self.nb_patchs, "nstep": n_step}}
         _writePVD(os.path.join(path, name), groups)
-    
-    def save_YETI(self, splines, separated_ctrl_pts, path, name):
-        if self.npa==2:
-            el_type = "U3"
-        elif self.npa==3:
-            el_type = "U1"
-        else:
-            raise NotImplementedError("Can only save surfaces or volumes !")
-        objects_list = []
-        for patch in range(self.nb_patchs):
-            geomdl_patch = splines[patch].getGeomdl(separated_ctrl_pts[patch])
-            obj = Domain.DefaultDomain(geometry=geomdl_patch,
-                                       id_dom=patch,
-                                       elem_type=el_type)
-            objects_list.append(obj)
-        write.write_files(objects_list, os.path.join(path, name))
         
 
 if __name__=='__main__':

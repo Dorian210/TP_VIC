@@ -6,7 +6,6 @@ import xml.dom.minidom
 import numpy as np
 import numpy.typing as npt
 import scipy.sparse as sps
-from wide_product import wide_product
 import meshio as io
 
 from bsplyne.b_spline_basis import BSplineBasis
@@ -278,11 +277,8 @@ class BSpline:
 
         Parameters
         ----------
-        XI : numpy.array of float or tuple of numpy.array of float
-            If `numpy`.`array` of `float`, contains the `NPa`-uplets of 
-            parametric coordinates as [[xi_0, ...], [eta_a, ...], ...].
-            Else, if `tuple` of `numpy`.`array` of `float`, contains the `NPa` 
-            parametric coordinates as [[xi_0, ...], [eta_0, ...], ...].
+        XI : tuple of numpy.array of float
+            Contains the `NPa` parametric coordinates as ([xi_0, ...], [eta_0, ...], ...).
         k : list of int or int, optional
             If `numpy`.`array` of `int`, or if k is 0, compute the `k`-th 
             derivative of the B-spline basis evaluated on each axis of the 
@@ -299,16 +295,6 @@ class BSpline:
 
         Examples
         --------
-        Evaluation of a 2D BSpline basis on these `XI` values : [[0, 0.5], [1, 0]]
-        >>> degrees = np.array([2, 2], dtype='int')
-        >>> knots = [np.array([0, 0, 0, 0.5, 1, 1, 1], dtype='float'), 
-                     np.array([0, 0, 0, 0.5, 1, 1, 1], dtype='float')]
-        >>> spline = BSpline(degrees, knots)
-        >>> XI = np.array([[0, 0.5], [1, 0]], dtype='float')
-        >>> spline.DN(XI, [0, 0]).A
-        array([[0. , 0. , 0. , 1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
-               [0. , 0. , 0. , 0. , 0.5, 0. , 0. , 0. , 0.5, 0. , 0. , 0. , 0. , 0. , 0. , 0. ]])
-        
         Evaluation of the 2D BSpline basis's derivative along the first axis :
         >>> XI = (np.array([0, 0.5], dtype='float'), 
                   np.array([1], dtype='float'))
@@ -317,15 +303,6 @@ class BSpline:
                [ 0.,  0.,  0.,  0., -2.,  0.,  0.,  0.,  2.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
 
         """
-        
-        if isinstance(XI, np.ndarray):
-            fct = wide_product
-            XI = XI.reshape((self.NPa, -1))
-            s1 = XI.shape[1]
-        else:
-            fct = sps.kron
-            s1 = 1
-        
         if isinstance(k, int):
             if k==0:
                 k = [0]*self.NPa # type: ignore
@@ -345,20 +322,20 @@ class BSpline:
                 k_arr[u] = c
                 key = tuple(k_arr)
                 if key not in dic:
-                    dic[key] = np.ones((s1, 1))
+                    dic[key] = np.ones((1, 1))
                     for idx in range(self.NPa):
                         k_querry = k_arr[idx]
-                        dic[key] = fct(dic[key], dkbasis_dxik[idx, k_querry])
+                        dic[key] = sps.kron(dic[key], dkbasis_dxik[idx, k_querry])
                 DN[axes] = dic[key]
             return DN
         else:
-            DN = np.ones((s1, 1))
+            DN = np.ones((1, 1))
             for idx in range(self.NPa):
                 basis = self.bases[idx]
                 k_idx = k[idx]
                 xi = XI[idx] - np.finfo('float').eps * (XI[idx]==basis.knot[-1])
                 DN_elem = basis.N(xi, k=k_idx)
-                DN = fct(DN, DN_elem)
+                DN = sps.kron(DN, DN_elem)
             return DN
     
     def __call__(self, ctrlPts, XI, k=0):
@@ -370,11 +347,8 @@ class BSpline:
         ctrlPts : numpy.array of float
             Contains the control points of the B-spline as [X, Y, Z, ...].
             Its shape : (NPh, nb elem for dim 1, ..., nb elem for dim `NPa`)
-        XI : numpy.array of float or tuple of numpy.array of float
-            If `numpy`.`array` of `float`, contains the `NPa`-uplets of 
-            parametric coordinates as [[xi_0, ...], [eta_a, ...], ...].
-            Else, if `tuple` of `numpy`.`array` of `float`, contains the `NPa` 
-            parametric coordinates as [[xi_0, ...], [eta_0, ...], ...].
+        XI : tuple of numpy.array of float
+            Contains the `NPa` parametric coordinates as ([xi_0, ...], [eta_0, ...], ...).
         k : numpy.array of int or int, optional
             If `numpy`.`array` of `int`, or if k is 0, compute the `k`-th 
             derivative of the B-spline evaluated on each axis of the parametric 
@@ -390,10 +364,8 @@ class BSpline:
             Evaluation of the `k`-th derivative of the B-spline at the 
             parametric space's coordinates given. This array contains the 
             physical space coordinates corresponding as [X, Y, ...]. 
-            If `XI` is a tuple, its shape is 
+            Its shape is 
             (NPh, shape of the derivative, len(xi), len(eta), ...).
-            Else, its shape is 
-            (NPh, shape of the derivative, *`XI`.shape[1:]).
 
         Examples
         --------
@@ -414,13 +386,6 @@ class BSpline:
         
                [[0.8208673 ],
                 [0.51415427]]])
-        
-        Evaluation of a 2D BSpline on an array of couples :
-        >>> XI = np.array([[0, 0.5], [1, 0]], dtype='float')
-        >>> spline(ctrlPts, XI, [0, 0])
-        array([[0.0247786 , 0.42344584],
-               [0.80417637, 0.42489571],
-               [0.8208673 , 0.07327555]])
 
         """
         if isinstance(XI, np.ndarray):
@@ -1002,43 +967,6 @@ class BSpline:
             _writePVD(os.path.join(path, name), groups)
         
         return groups
-    
-    def getGeomdl(self, ctrl_pts):
-        try:
-            from geomdl import BSpline as geomdlBS
-        except:
-            raise 
-        if self.NPa==1:
-            curve = geomdlBS.Curve()
-            curve.degree = self.bases[0].p
-            curve.ctrlpts = ctrl_pts.T.tolist()
-            curve.knotvector = self.bases[0].knot
-            return curve
-        elif self.NPa==2:
-            surf = geomdlBS.Surface()
-            surf.degree_u = self.bases[0].p
-            surf.degree_v = self.bases[1].p
-            surf.ctrlpts2d = ctrl_pts.transpose((1, 2, 0)).tolist()
-            surf.knotvector_u = self.bases[0].knot
-            surf.knotvector_v = self.bases[1].knot
-            return surf
-        elif self.NPa==3:
-            vol = geomdlBS.Volume()
-            vol.degree_u = self.bases[0].p
-            vol.degree_v = self.bases[1].p
-            vol.degree_w = self.bases[2].p
-            vol.cpsize = ctrl_pts.shape[1:]
-            # ctrl_pts format (zeta, xi, eta)
-            vol.ctrlpts = ctrl_pts.transpose(3, 1, 2, 0).reshape((-1, ctrl_pts.shape[0])).tolist()
-            vol.knotvector_u = self.bases[0].knot
-            vol.knotvector_v = self.bases[1].knot
-            vol.knotvector_w = self.bases[2].knot
-            return vol
-        else:
-            raise NotImplementedError("Can only export curves, sufaces or volumes !")
-    
-    def plotPV(self, ctrl_pts):
-        pass
     
     def plotMPL(self, ctrl_pts, n_eval_per_elem=10, ax=None, ctrl_color='#1b9e77', interior_color='#7570b3', elem_color='#666666', border_color='#d95f02'):
         import matplotlib.pyplot as plt

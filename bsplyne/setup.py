@@ -13,7 +13,7 @@ setup(
     long_description=long_description, 
     long_description_content_type='text/markdown', 
     packages=find_packages(), 
-    install_requires=['numpy', 'numba', 'scipy', 'matplotlib', 'wide_product', 'meshio', 'tqdm'], 
+    install_requires=['numpy', 'numba', 'scipy', 'matplotlib', 'meshio', 'tqdm'], 
     classifiers=['Programming Language :: Python :: 3', 
                  'Operating System :: OS Independent', 
                  'License :: OSI Approved :: CEA CNRS Inria Logiciel Libre License, version 2.1 (CeCILL-2.1)'], 
