@@ -29,33 +29,12 @@ Click on the python interpreter at the top right and pick the right kernel from 
 
 ########################################################################################################
 
-Simple windows installation (not conda):
-----------------------------------------
-
-1. Extract these files in a new folder
-
-2. Install python 3.9  if not already installed (mandatory)
-
-3. Open a PowerShell terminal and go to this folder (using dir)
-
-4. Run the virtual environment installer:
->> path/to/python3.9/python.exe install.py
-(the path is usually C:\Users\<VotreNomUtilisateur>\AppData\Local\Programs\Python\Python39\python.exe)
-
-5. Launch the notebook:
->> jupyter-notebook TP_VIC.ipynb
-
-6. Change the kernel to "Python (TP VIC venv)":
-Click on the python interpreter at the top right and pick the right kernel from the drop-down menu.
-
-########################################################################################################
-
-Manual windows installation (conda):
+Windows installation (conda):
 ------------------------------------
 
 1. Extract these files in a new folder
 
-2. Dans le menu demarrer, lancer "anaconda PowerShell Prompt"
+2. From the start menu, launch "anaconda PowerShell Prompt"
 
 3. Create a new environment:
 >> conda create -n tp-dorian python=3.9
@@ -78,6 +57,27 @@ Manual windows installation (conda):
 
 9. launch jupyter from the good folder:
 >> jupyter-notebook.exe TP_VIC.ipynb
+
+########################################################################################################
+
+Windows installation (not conda):
+----------------------------------------
+
+1. Extract these files in a new folder
+
+2. Install python 3.9  if not already installed (mandatory)
+
+3. Open a PowerShell terminal and go to this folder (using dir)
+
+4. Run the virtual environment installer:
+>> path/to/python3.9/python.exe install.py
+(the path is usually C:\Users\<VotreNomUtilisateur>\AppData\Local\Programs\Python\Python39\python.exe)
+
+5. Launch the notebook:
+>> jupyter-notebook TP_VIC.ipynb
+
+6. Change the kernel to "Python (TP VIC venv)":
+Click on the python interpreter at the top right and pick the right kernel from the drop-down menu.
 
 ########################################################################################################
 
