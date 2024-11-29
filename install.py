@@ -21,26 +21,21 @@ def install_tp():
     run_command([python_exe, "-m", "venv", venv_dir])
 
     # Étape 2 : Activation de l'environnement virtuel
-    if is_windows:
-        activate_script = os.path.join(venv_dir, "Scripts", "activate.bat")
-    else:
-        activate_script = os.path.join(venv_dir, "bin", "activate")
+    pip_cmd = [os.path.join(venv_dir, "Scripts" if is_windows else "bin", "pip")]
+    
+    print("Python executable:", python_exe)
+    print("Pip command:", pip_cmd)
 
-    # Étape 3 : Installation des librairies nécessaires
-    pip_cmd = [os.path.join(venv_dir, "Scripts", "pip") if is_windows else os.path.join(venv_dir, "bin", "pip")]
-    pip_cmd.extend(["install", "./bsplyne", "pyxel-dic", "numba==0.56.4", "ipykernel"])
-    run_command(pip_cmd)
+    # Étape 3 : Mettre à jour pip
+    run_command(pip_cmd + ["install", "--upgrade", "pip"])
 
-    # Étape 4 : Ajout du kernel Jupyter
+    # Étape 4 : Installer les librairies nécessaires
+    run_command(pip_cmd + ["install", "./bsplyne", "pyxel-dic", "numba==0.56.4", "ipykernel"])
+
+    # Étape 5 : Ajouter le kernel Jupyter
     kernel_cmd = [
-        python_exe,
-        "-m",
-        "ipykernel",
-        "install",
-        "--user",
-        f"--name={os.path.basename(venv_dir)}",
-        "--display-name",
-        "\"Python (TP VIC venv)\""
+        os.path.join(venv_dir, "Scripts" if is_windows else "bin", "python"),
+        "-m", "ipykernel", "install", "--user", f"--name={venv_dir}", "--display-name", "Python (TP VIC venv)"
     ]
     run_command(kernel_cmd)
 
